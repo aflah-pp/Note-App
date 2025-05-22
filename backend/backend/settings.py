@@ -63,7 +63,8 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "https://NoteApp-nexus.vercel.app",
-    "http://localhost:5173/"
+    "http://localhost:5173",
+    "https://note-app-production-e590.up.railway.app"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
