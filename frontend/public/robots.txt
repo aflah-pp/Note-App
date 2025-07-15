@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://note-app-1-4kwr.onrender.com/

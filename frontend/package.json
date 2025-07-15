@@ -1,7 +1,7 @@
 {
   "name": "noteapp",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,16 +13,16 @@
     "@tailwindcss/postcss": "^4.1.4",
     "axios": "^1.9.0",
     "jwt-decode": "^4.0.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-router-dom": "^7.5.2",
-    "router-dom": "^3.0.3"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.3",
+    "vite-plugin-pwa": "^0.16.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
     "@testing-library/user-event": "^14.6.1",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
+    "@types/react": "^18.2.41",
+    "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.22.0",
@@ -30,8 +30,8 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "jest-transform-stub": "^2.0.0",
-    "postcss": "^8.5.3",
+    "postcss": "^8.4.38",
     "tailwindcss": "^3.4.1",
-    "vite": "^6.3.1"
+    "vite": "^5.2.10"
   }
 }
