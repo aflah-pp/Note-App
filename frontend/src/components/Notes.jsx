@@ -7,31 +7,14 @@ function Notes({ note, onDelete }) {
   });
 
   return (
-    <div className="p-5 mb-4 transition-all duration-200 bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
-      <div className="space-y-2">
-        <h3 className="text-xl font-semibold text-gray-900">{note.title}</h3>
-
-        <p className="leading-relaxed text-gray-600">{note.content}</p>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-4 mt-5 border-t border-gray-100">
-        <div className="flex flex-col">
-          <span className="text-xs text-gray-400">Created On</span>
-          <span className="text-sm text-gray-600">{formattedDate}</span>
-        </div>
-
-        <div className="flex flex-col">
-          <span className="text-xs font-medium tracking-wide text-blue-500 uppercase">
-            Created By
-          </span>
-          <span className="text-base font-semibold text-blue-700">
-            {note.created_by}
-          </span>
-        </div>
-
+    <div className="bg-white shadow p-4 rounded-lg mb-4">
+      <h3 className="text-lg font-bold text-gray-800">{note.title}</h3>
+      <p className="text-gray-700 mt-1">{note.content}</p>
+      <div className="flex justify-between items-center mt-3 text-sm text-gray-500">
+        <span>{formattedDate}</span>
         <button
           onClick={() => onDelete(note.id)}
-          className="px-3 py-1.5 text-sm font-medium text-red-600 hover:text-white hover:bg-red-500 border border-red-200 rounded-lg transition-all"
+          className="text-red-500 hover:underline"
         >
           Delete
         </button>
