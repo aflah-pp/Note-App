@@ -5,17 +5,12 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
 import ProtectedRoutes from "./components/ProtectedRoutes";
-
+import Profile from "./components/UserProfile";
 
 function App() {
-  const Logout = () => {
-    localStorage.clear();
-    return <Navigate to="/login" />;
-  };
-
   const RegisterAndLogout = () => {
     localStorage.clear();
-    return <Register/>;
+    return <Register />;
   };
   return (
     <BrowserRouter>
@@ -23,13 +18,14 @@ function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoutes>
-              <Home />
-            </ProtectedRoutes>
+            // <ProtectedRoutes>
+            <Home />
+            // </ProtectedRoutes>
           }
         />
         <Route path="/login" element={<Login />} />
-        <Route path="/logout" element={<Logout />} />
+        <Route path="/user" element={<Profile />} />
+        {/* <Route path="/logout" element={<Logout />} /> */}
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="*" element={<ErrorPage />} />
       </Routes>
