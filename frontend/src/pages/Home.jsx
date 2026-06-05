@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import Note from "../components/Notes";
-import Modal from "../components/Modal";
+import Modal from "../components/modal";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
