@@ -11,81 +11,107 @@ function Modal({
 }) {
   if (!isOpen) return null;
 
-  const statusStyles = {
+  const typeConfig = {
     success: {
-      border: "border-green-500",
-      bg: "bg-green-50",
-      text: "text-green-700",
+      accent: "bg-emerald-500",
+      badge: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      ),
     },
     error: {
-      border: "border-red-500",
-      bg: "bg-red-50",
-      text: "text-red-700",
+      accent: "bg-red-500",
+      badge: "bg-red-500/10 text-red-400 border border-red-500/20",
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      ),
     },
     warning: {
-      border: "border-yellow-500",
-      bg: "bg-yellow-50",
-      text: "text-yellow-700",
+      accent: "bg-amber-500",
+      badge: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        </svg>
+      ),
     },
     info: {
-      border: "border-blue-500",
-      bg: "bg-blue-50",
-      text: "text-blue-700",
+      accent: "bg-[#5E6AD2]",
+      badge: "bg-[#5E6AD2]/10 text-[#8b96e8] border border-[#5E6AD2]/20",
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
     },
   };
 
-  const style = statusStyles[type] || statusStyles.info;
+  const config = typeConfig[type] || typeConfig.info;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="w-full max-w-lg overflow-hidden bg-white shadow-2xl rounded-xl">
-        <div
-          className={`flex items-center justify-between border-l-4 ${style.border} p-4`}
-        >
-          <h2 className="text-lg font-semibold">{title}</h2>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="w-full max-w-lg rounded-2xl bg-[#0d0d0f] border border-white/[0.08] shadow-[0_24px_80px_rgba(0,0,0,0.8)] overflow-hidden">
 
+        {/* Accent top bar */}
+        <div className={`h-0.5 w-full ${config.accent}`} />
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+          <div className="flex items-center gap-2.5">
+            <span className={`p-1.5 rounded-lg ${config.badge}`}>
+              {config.icon}
+            </span>
+            <h2 className="text-sm font-semibold text-white/80">{title}</h2>
+          </div>
           <button
             onClick={onClose}
-            className="p-1 text-gray-500 rounded hover:bg-gray-100"
+            className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-all duration-150"
+            aria-label="Close modal"
           >
-            ✕
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
+        {/* Body */}
         <div className="p-5 space-y-4">
-          <div className={`rounded-lg p-3 ${style.bg}`}>
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Status Code</span>
-
-              <span className={`rounded px-3 py-1 font-bold ${style.text}`}>
-                {statusCode}
-              </span>
-            </div>
+          <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+            <span className="text-xs text-white/40 uppercase tracking-wider">Status Code</span>
+            <span className={`text-sm font-bold px-2.5 py-0.5 rounded-md ${config.badge}`}>
+              {statusCode}
+            </span>
           </div>
 
           <div>
-            <h4 className="mb-2 font-semibold text-gray-800">Message</h4>
-
-            <div className="p-3 border rounded-lg bg-gray-50">
+            <p className="text-xs text-white/30 uppercase tracking-wider mb-2">Message</p>
+            <div className="px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-white/60">
               {message || "No message received"}
             </div>
           </div>
 
           <div>
-            <h4 className="mb-2 font-semibold text-gray-800">Response Data</h4>
-
-            <pre className="p-4 overflow-auto text-sm text-green-400 bg-gray-900 rounded-lg max-h-64">
+            <p className="text-xs text-white/30 uppercase tracking-wider mb-2">Response Data</p>
+            <pre className="p-4 rounded-xl bg-black/60 border border-white/[0.06] text-xs text-emerald-400/80 overflow-auto max-h-48 leading-relaxed font-mono">
               {JSON.stringify(responseData, null, 2)}
             </pre>
           </div>
         </div>
 
-        <div className="p-4 border-t">
+        {/* Footer */}
+        <div className="px-5 pb-5">
           <button
             onClick={onClose}
-            className="w-full py-2 font-medium text-white bg-gray-900 rounded-lg hover:bg-black"
+            className="w-full py-2.5 text-sm font-semibold text-white/70 bg-white/[0.06] border border-white/[0.08] rounded-xl hover:bg-white/[0.10] hover:text-white transition-all duration-200"
           >
-            Close
+            Dismiss
           </button>
         </div>
       </div>
