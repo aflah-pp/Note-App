@@ -36,7 +36,7 @@ function Notes({ note, onDelete }) {
         <div className="flex items-center gap-3">
           {note.created_by && (
             <span className="text-xs text-[#5E6AD2]/80 font-medium">
-              @{note.created_by}
+              @created by: {note.created_by}
             </span>
           )}
           <button
