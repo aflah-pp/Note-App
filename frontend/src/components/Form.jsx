@@ -2,9 +2,14 @@ import { useNavigate, Link } from "react-router-dom";
 import api from "../api/axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants/Constants";
 import { useState, useEffect } from "react";
+import ThemeToggle from "../components/ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 
 function Form({ route, method }) {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -16,35 +21,29 @@ function Form({ route, method }) {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-  // BUG #F8 — only email, username, password, confirmPassword are validated;
-  // firstName and lastName have no min-length or format validation here
+  // BUG #F8 — firstName has zero validation anywhere; lastName min-length missing
   const validateField = (fieldName, value) => {
     switch (fieldName) {
       case "email":
         if (!value.trim()) return "Email is required";
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Invalid email address";
         return "";
-
       case "username":
         if (!value.trim()) return "Username is required";
         if (value.length < 4) return "Username must be at least 4 characters";
         return "";
-
       case "password":
         if (method === "register" && value.length > 0 && value.length < 6)
           return "Password must be at least 6 characters";
         return "";
-
       case "confirmPassword":
         if (method === "register" && value !== password)
           return "Passwords do not match";
         return "";
-
-      // BUG #F9 — lastName only checked for empty; no min-length (should be at least 3 chars)
+      // BUG #F9 — only checks empty, no min 3 char rule
       case "lastName":
         if (!value.trim()) return "Last name is required";
-        return ""; // missing: value.length < 3 check
-
+        return "";
       default:
         return "";
     }
@@ -52,68 +51,38 @@ function Form({ route, method }) {
 
   useEffect(() => {
     const newErrors = { ...errors };
-
     if (method === "register") {
-      if (touched.email) {
-        const e = validateField("email", email);
-        if (e) newErrors.email = e; else delete newErrors.email;
-      }
-      if (touched.username) {
-        const e = validateField("username", username);
-        if (e) newErrors.username = e; else delete newErrors.username;
-      }
-      if (touched.password) {
-        const e = validateField("password", password);
-        if (e) newErrors.password = e; else delete newErrors.password;
-      }
-      if (touched.confirmPassword) {
-        const e = validateField("confirmPassword", confirmPassword);
-        if (e) newErrors.confirmPassword = e; else delete newErrors.confirmPassword;
-      }
-      // BUG #F8 — firstName has no live validation at all
-      // BUG #F9 — lastName touched check exists but validateField("lastName") only checks empty, not min-length
-      if (touched.lastName) {
-        const e = validateField("lastName", lastName);
-        if (e) newErrors.lastName = e; else delete newErrors.lastName;
-      }
+      if (touched.email) { const e = validateField("email", email); if (e) newErrors.email = e; else delete newErrors.email; }
+      if (touched.username) { const e = validateField("username", username); if (e) newErrors.username = e; else delete newErrors.username; }
+      if (touched.password) { const e = validateField("password", password); if (e) newErrors.password = e; else delete newErrors.password; }
+      if (touched.confirmPassword) { const e = validateField("confirmPassword", confirmPassword); if (e) newErrors.confirmPassword = e; else delete newErrors.confirmPassword; }
+      // BUG #F8 — firstName never validated live
+      if (touched.lastName) { const e = validateField("lastName", lastName); if (e) newErrors.lastName = e; else delete newErrors.lastName; }
     } else {
-      if (touched.username) {
-        const e = validateField("username", username);
-        if (e) newErrors.username = e; else delete newErrors.username;
-      }
+      if (touched.username) { const e = validateField("username", username); if (e) newErrors.username = e; else delete newErrors.username; }
     }
-
     setErrors(newErrors);
   }, [username, password, email, confirmPassword, lastName, touched, method]);
 
-  const handleBlur = (fieldName) => {
-    setTouched({ ...touched, [fieldName]: true });
-  };
+  const handleBlur = (fieldName) => setTouched({ ...touched, [fieldName]: true });
 
   const validateRegister = () => {
     const newErrors = {};
-
     if (!email.trim()) newErrors.email = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = "Invalid email address";
-
     if (!username.trim()) newErrors.username = "Username is required";
     else if (username.length < 4) newErrors.username = "Username must be at least 4 characters";
-
     if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
     if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
-
-    // BUG #F8 — firstName is never validated at all in submit-time validation
-    // BUG #F9 — lastName only checks empty, not min 3 chars
+    // BUG #F8 — firstName never validated at submit either
+    // BUG #F9 — only empty check, no min-length
     if (!lastName.trim()) newErrors.lastName = "Last name is required";
-    // missing: else if (lastName.length < 3) check
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (method === "register") {
       setTouched({
         email: true,
@@ -121,7 +90,7 @@ function Form({ route, method }) {
         password: true,
         confirmPassword: true,
         lastName: true,
-        // BUG #F8 — firstName not in touched, never triggers validation
+        // BUG #F8 — firstName not touched, skips validation entirely
       });
     } else {
       setTouched({ username: true });
@@ -133,22 +102,19 @@ function Form({ route, method }) {
     try {
       if (method === "register") {
         const valid = validateRegister();
-        if (!valid) {
-          setLoading(false);
-          return;
-        }
+        if (!valid) { setLoading(false); return; }
       }
 
-      // BUG #F6 — firstName is captured in state but never included in payload sent to backend
-      // BUG #F7 — email is captured and validated but never included in login payload; register payload also misses it
+      // BUG #F6 — firstName missing from payload
+      // BUG #F7 — email missing from payload
       const payload =
         method === "login"
           ? { username, password }
           : {
               username,
               password,
-              // email is intentionally missing from payload — BUG #F7
-              // first_name is intentionally missing from payload — BUG #F6
+              // email intentionally missing — BUG #F7
+              // first_name intentionally missing — BUG #F6
               last_name: lastName,
             };
 
@@ -172,60 +138,82 @@ function Form({ route, method }) {
 
   const name = method === "login" ? "Login" : "Register";
 
-  const inputBase =
-    "w-full bg-white/[0.04] border rounded-xl px-4 py-3 text-white placeholder-white/25 text-sm focus:outline-none focus:ring-1 transition-all duration-200";
-  const inputNormal = "border-white/[0.08] focus:border-[#5E6AD2]/60 focus:ring-[#5E6AD2]/30";
-  const inputError = "border-red-500/50 focus:border-red-500/60 focus:ring-red-500/20";
+  // Shared input class builder
+  const inputCls = (hasError) => `
+    w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 transition-all duration-200
+    ${isDark
+      ? hasError
+        ? "bg-white/[0.04] border-red-500/50 text-white placeholder-white/25 focus:border-red-500/60 focus:ring-red-500/20"
+        : "bg-white/[0.04] border-white/[0.08] text-white placeholder-white/25 focus:border-[#5E6AD2]/60 focus:ring-[#5E6AD2]/30"
+      : hasError
+        ? "bg-black/[0.03] border-red-400/60 text-[#111110] placeholder-black/25 focus:border-red-400/70 focus:ring-red-400/20"
+        : "bg-black/[0.03] border-black/[0.08] text-[#111110] placeholder-black/25 focus:border-[#5E6AD2]/50 focus:ring-[#5E6AD2]/20"
+    }
+  `;
 
   return (
-    <div className="min-h-screen bg-[#050506] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className={`min-h-screen flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300 ${isDark ? "bg-[#050506]" : "bg-[#FAFAF8]"}`}>
 
       {/* Ambient blobs */}
       <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#5E6AD2]/10 blur-[120px]" />
-        <div className="absolute bottom-[-15%] right-[-10%] w-[400px] h-[400px] rounded-full bg-[#8b5cf6]/8 blur-[100px]" />
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+        {isDark ? (
+          <>
+            <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#5E6AD2]/10 blur-[120px]" />
+            <div className="absolute bottom-[-15%] right-[-10%] w-[400px] h-[400px] rounded-full bg-[#8b5cf6]/8 blur-[100px]" />
+            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+          </>
+        ) : (
+          <>
+            <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#5E6AD2]/6 blur-[140px]" />
+            <div className="absolute bottom-[-15%] right-[-10%] w-[400px] h-[400px] rounded-full bg-amber-400/5 blur-[120px]" />
+            <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+          </>
+        )}
+      </div>
+
+      {/* Theme toggle — top right */}
+      <div className="fixed top-4 right-4 z-20">
+        <ThemeToggle />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
 
-        {/* Logo / brand mark */}
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-white/50 tracking-widest uppercase mb-4">
+          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs tracking-widest uppercase mb-4 transition-colors duration-300 ${isDark ? "bg-white/5 border-white/10 text-white/50" : "bg-black/5 border-black/10 text-black/40"}`}>
             <span className="w-1.5 h-1.5 rounded-full bg-[#5E6AD2] animate-pulse" />
             Notes App
           </div>
-          <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-br from-white via-white/90 to-white/40 bg-clip-text text-transparent">
+          <h1 className={`text-2xl font-bold tracking-tight transition-colors duration-300 ${
+            isDark
+              ? "bg-gradient-to-br from-white via-white/90 to-white/40 bg-clip-text text-transparent"
+              : "bg-gradient-to-br from-[#111110] via-[#333330] to-[#666660] bg-clip-text text-transparent"
+          }`}>
             {method === "login" ? "Welcome back" : "Create account"}
           </h1>
-          <p className="mt-1.5 text-sm text-white/30">
-            {method === "login"
-              ? "Sign in to your workspace"
-              : "Start capturing your thoughts"}
+          <p className={`mt-1.5 text-sm transition-colors duration-300 ${isDark ? "text-white/30" : "text-black/35"}`}>
+            {method === "login" ? "Sign in to your workspace" : "Start capturing your thoughts"}
           </p>
         </div>
 
         {/* Form card */}
-        <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-sm shadow-[0_8px_40px_rgba(0,0,0,0.4)] p-6 space-y-4">
+        <div className={`rounded-2xl border backdrop-blur-sm p-6 space-y-4 transition-colors duration-300 ${
+          isDark
+            ? "bg-white/[0.04] border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.4)]"
+            : "bg-white border-black/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.06)]"
+        }`}>
 
           {method === "register" && (
             <>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  {/* BUG #F8 — no onBlur, no error display, firstName never validated */}
+                  {/* BUG #F8 — no onBlur, no validation, firstName never checked */}
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="First name"
-                    className={`${inputBase} ${inputNormal}`}
+                    className={inputCls(false)}
                   />
                 </div>
                 <div>
@@ -235,7 +223,7 @@ function Form({ route, method }) {
                     onChange={(e) => setLastName(e.target.value)}
                     onBlur={() => handleBlur("lastName")}
                     placeholder="Last name"
-                    className={`${inputBase} ${errors.lastName && touched.lastName ? inputError : inputNormal}`}
+                    className={inputCls(errors.lastName && touched.lastName)}
                   />
                   {errors.lastName && touched.lastName && (
                     <p className="mt-1.5 text-xs text-red-400">{errors.lastName}</p>
@@ -250,7 +238,7 @@ function Form({ route, method }) {
                   onChange={(e) => setEmail(e.target.value)}
                   onBlur={() => handleBlur("email")}
                   placeholder="Email address"
-                  className={`${inputBase} ${errors.email && touched.email ? inputError : inputNormal}`}
+                  className={inputCls(errors.email && touched.email)}
                 />
                 {errors.email && touched.email && (
                   <p className="mt-1.5 text-xs text-red-400">{errors.email}</p>
@@ -266,7 +254,7 @@ function Form({ route, method }) {
               onChange={(e) => setUsername(e.target.value)}
               onBlur={() => handleBlur("username")}
               placeholder="Username"
-              className={`${inputBase} ${errors.username && touched.username ? inputError : inputNormal}`}
+              className={inputCls(errors.username && touched.username)}
             />
             {errors.username && touched.username && (
               <p className="mt-1.5 text-xs text-red-400">{errors.username}</p>
@@ -280,7 +268,7 @@ function Form({ route, method }) {
               onChange={(e) => setPassword(e.target.value)}
               onBlur={() => handleBlur("password")}
               placeholder="Password"
-              className={`${inputBase} ${errors.password && touched.password ? inputError : inputNormal}`}
+              className={inputCls(errors.password && touched.password)}
             />
             {errors.password && touched.password && (
               <p className="mt-1.5 text-xs text-red-400">{errors.password}</p>
@@ -295,7 +283,7 @@ function Form({ route, method }) {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 onBlur={() => handleBlur("confirmPassword")}
                 placeholder="Confirm password"
-                className={`${inputBase} ${errors.confirmPassword && touched.confirmPassword ? inputError : inputNormal}`}
+                className={inputCls(errors.confirmPassword && touched.confirmPassword)}
               />
               {errors.confirmPassword && touched.confirmPassword && (
                 <p className="mt-1.5 text-xs text-red-400">{errors.confirmPassword}</p>
@@ -304,7 +292,9 @@ function Form({ route, method }) {
           )}
 
           {errorMessage && (
-            <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 text-center">
+            <div className={`px-4 py-3 rounded-xl border text-sm text-center transition-colors duration-300 ${
+              isDark ? "bg-red-500/10 border-red-500/20 text-red-400" : "bg-red-50 border-red-200 text-red-600"
+            }`}>
               {errorMessage}
             </div>
           )}
@@ -314,9 +304,7 @@ function Form({ route, method }) {
             onClick={handleSubmit}
             disabled={loading}
             className={`w-full py-3 text-sm font-semibold text-white bg-[#5E6AD2] rounded-xl shadow-[0_0_20px_rgba(94,106,210,0.35)] transition-all duration-200 ${
-              loading
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-[#6B76D9] hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(94,106,210,0.5)]"
+              loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#6B76D9] hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(94,106,210,0.5)]"
             }`}
           >
             {loading ? (
@@ -327,27 +315,15 @@ function Form({ route, method }) {
                 </svg>
                 Please wait...
               </span>
-            ) : (
-              name
-            )}
+            ) : name}
           </button>
 
           <div className="text-center pt-1">
-            <p className="text-sm text-white/30">
+            <p className={`text-sm transition-colors duration-300 ${isDark ? "text-white/30" : "text-black/35"}`}>
               {method === "login" ? (
-                <>
-                  Don&apos;t have an account?{" "}
-                  <Link to="/register" className="text-[#8b96e8] hover:text-white transition-colors">
-                    Register
-                  </Link>
-                </>
+                <>Don&apos;t have an account?{" "}<Link to="/register" className="text-[#5E6AD2] hover:text-[#8b96e8] transition-colors">Register</Link></>
               ) : (
-                <>
-                  Already have an account?{" "}
-                  <Link to="/login" className="text-[#8b96e8] hover:text-white transition-colors">
-                    Login
-                  </Link>
-                </>
+                <>Already have an account?{" "}<Link to="/login" className="text-[#5E6AD2] hover:text-[#8b96e8] transition-colors">Login</Link></>
               )}
             </p>
           </div>

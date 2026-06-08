@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import api from "../api/axios";
 import Note from "../components/Notes";
 import Modal from "../components/modal";
+import ThemeToggle from "../components/ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
@@ -13,6 +15,8 @@ function Home() {
   const [modalData, setModalData] = useState({});
 
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     getNotes();
@@ -99,20 +103,35 @@ function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050506] text-white font-sans relative overflow-x-hidden">
+    <div className={`min-h-screen font-sans relative overflow-x-hidden transition-colors duration-300 ${isDark ? "bg-[#050506] text-white" : "bg-[#FAFAF8] text-[#111110]"}`}>
 
-      {/* Ambient background blobs */}
+      {/* Ambient background */}
       <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-[#5E6AD2]/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-[#8b5cf6]/8 blur-[100px]" />
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+        {isDark ? (
+          <>
+            <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-[#5E6AD2]/10 blur-[120px]" />
+            <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-[#8b5cf6]/8 blur-[100px]" />
+            <div
+              className="absolute inset-0 opacity-[0.03]"
+              style={{
+                backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+                backgroundSize: "40px 40px",
+              }}
+            />
+          </>
+        ) : (
+          <>
+            <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-[#5E6AD2]/6 blur-[140px]" />
+            <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-amber-400/5 blur-[120px]" />
+            <div
+              className="absolute inset-0 opacity-[0.025]"
+              style={{
+                backgroundImage: "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)",
+                backgroundSize: "40px 40px",
+              }}
+            />
+          </>
+        )}
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8">
@@ -120,27 +139,44 @@ function Home() {
         {/* Hero Header */}
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-12">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full bg-white/5 border border-white/10 text-xs text-white/50 tracking-widest uppercase">
+            <div className={`inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full border text-xs tracking-widest uppercase transition-colors duration-300 ${
+              isDark ? "bg-white/5 border-white/10 text-white/50" : "bg-black/5 border-black/10 text-black/40"
+            }`}>
               <span className="w-1.5 h-1.5 rounded-full bg-[#5E6AD2] animate-pulse" />
               Workspace
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-br from-white via-white/90 to-white/40 bg-clip-text text-transparent">
+            <h1 className={`text-3xl sm:text-4xl font-bold tracking-tight transition-colors duration-300 ${
+              isDark
+                ? "bg-gradient-to-br from-white via-white/90 to-white/40 bg-clip-text text-transparent"
+                : "bg-gradient-to-br from-[#111110] via-[#333330] to-[#666660] bg-clip-text text-transparent"
+            }`}>
               My Notes
             </h1>
-            <p className="mt-1 text-sm text-white/40">Capture thoughts. Build clarity.</p>
+            <p className={`mt-1 text-sm transition-colors duration-300 ${isDark ? "text-white/40" : "text-black/35"}`}>
+              Capture thoughts. Build clarity.
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-sm text-white/50">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Notes count badge */}
+            <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm transition-colors duration-300 ${
+              isDark ? "bg-white/5 border-white/10 text-white/50" : "bg-black/5 border-black/8 text-black/40"
+            }`}>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               {notes.length} {notes.length === 1 ? "note" : "notes"}
             </div>
 
+            <ThemeToggle />
+
             <button
               onClick={() => navigate("/user")}
-              className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200"
+              className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 ${
+                isDark
+                  ? "text-white/70 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white"
+                  : "text-black/60 bg-black/5 border-black/10 hover:bg-black/10 hover:text-black"
+              }`}
             >
               Profile
             </button>
@@ -156,9 +192,15 @@ function Home() {
 
         {/* Create Note Card */}
         <section className="mb-10">
-          <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-sm shadow-[0_8px_40px_rgba(0,0,0,0.4)] overflow-hidden">
-            <div className="px-6 pt-5 pb-1 border-b border-white/[0.06]">
-              <h2 className="text-sm font-semibold text-white/60 uppercase tracking-widest">New Note</h2>
+          <div className={`rounded-2xl border backdrop-blur-sm shadow-lg overflow-hidden transition-colors duration-300 ${
+            isDark
+              ? "bg-white/[0.04] border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.4)]"
+              : "bg-white border-black/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.06)]"
+          }`}>
+            <div className={`px-6 pt-5 pb-1 border-b transition-colors duration-300 ${isDark ? "border-white/[0.06]" : "border-black/[0.06]"}`}>
+              <h2 className={`text-sm font-semibold uppercase tracking-widest transition-colors duration-300 ${isDark ? "text-white/60" : "text-black/40"}`}>
+                New Note
+              </h2>
             </div>
             <form onSubmit={createNote} className="p-6 space-y-4">
               <input
@@ -167,7 +209,11 @@ function Home() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Note title..."
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#5E6AD2]/60 focus:ring-1 focus:ring-[#5E6AD2]/30 transition-all duration-200"
+                className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 transition-all duration-200 ${
+                  isDark
+                    ? "bg-white/[0.04] border-white/[0.08] text-white placeholder-white/25 focus:border-[#5E6AD2]/60 focus:ring-[#5E6AD2]/30"
+                    : "bg-black/[0.03] border-black/[0.08] text-[#111110] placeholder-black/25 focus:border-[#5E6AD2]/50 focus:ring-[#5E6AD2]/20"
+                }`}
               />
               <textarea
                 required
@@ -175,14 +221,20 @@ function Home() {
                 onChange={(e) => setContent(e.target.value)}
                 rows={4}
                 placeholder="What's on your mind..."
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-white/25 text-sm focus:outline-none focus:border-[#5E6AD2]/60 focus:ring-1 focus:ring-[#5E6AD2]/30 transition-all duration-200 resize-none"
+                className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 transition-all duration-200 resize-none ${
+                  isDark
+                    ? "bg-white/[0.04] border-white/[0.08] text-white placeholder-white/25 focus:border-[#5E6AD2]/60 focus:ring-[#5E6AD2]/30"
+                    : "bg-black/[0.03] border-black/[0.08] text-[#111110] placeholder-black/25 focus:border-[#5E6AD2]/50 focus:ring-[#5E6AD2]/20"
+                }`}
               />
               <div className="flex justify-end">
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`px-6 py-2.5 text-sm font-semibold text-white bg-[#5E6AD2] rounded-xl hover:bg-[#6B76D9] shadow-[0_0_20px_rgba(94,106,210,0.35)] transition-all duration-200 ${
-                    loading ? "opacity-50 cursor-not-allowed" : "hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(94,106,210,0.5)]"
+                  className={`px-6 py-2.5 text-sm font-semibold text-white bg-[#5E6AD2] rounded-xl shadow-[0_0_20px_rgba(94,106,210,0.35)] transition-all duration-200 ${
+                    loading
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-[#6B76D9] hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(94,106,210,0.5)]"
                   }`}
                 >
                   {loading ? (
@@ -193,9 +245,7 @@ function Home() {
                       </svg>
                       Creating...
                     </span>
-                  ) : (
-                    "Create Note"
-                  )}
+                  ) : "Create Note"}
                 </button>
               </div>
             </form>
@@ -205,21 +255,29 @@ function Home() {
         {/* Notes Section */}
         <section>
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-white/80">All Notes</h2>
-            <span className="text-xs text-white/30 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full">
+            <h2 className={`text-lg font-semibold transition-colors duration-300 ${isDark ? "text-white/80" : "text-black/70"}`}>
+              All Notes
+            </h2>
+            <span className={`text-xs px-2.5 py-1 rounded-full border transition-colors duration-300 ${
+              isDark ? "text-white/30 bg-white/5 border-white/10" : "text-black/30 bg-black/5 border-black/8"
+            }`}>
               {notes.length} total
             </span>
           </div>
 
           {notes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 rounded-2xl bg-white/[0.02] border border-white/[0.06] border-dashed">
-              <div className="w-14 h-14 mb-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-                <svg className="w-7 h-7 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`flex flex-col items-center justify-center py-24 rounded-2xl border border-dashed transition-colors duration-300 ${
+              isDark ? "bg-white/[0.02] border-white/[0.06]" : "bg-black/[0.02] border-black/[0.08]"
+            }`}>
+              <div className={`w-14 h-14 mb-4 rounded-2xl border flex items-center justify-center transition-colors duration-300 ${
+                isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/8"
+              }`}>
+                <svg className={`w-7 h-7 transition-colors duration-300 ${isDark ? "text-white/20" : "text-black/15"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <p className="text-white/30 text-sm font-medium mb-1">No notes yet</p>
-              <p className="text-white/15 text-xs">Create your first note above to get started</p>
+              <p className={`text-sm font-medium mb-1 transition-colors duration-300 ${isDark ? "text-white/30" : "text-black/25"}`}>No notes yet</p>
+              <p className={`text-xs transition-colors duration-300 ${isDark ? "text-white/15" : "text-black/18"}`}>Create your first note above to get started</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
