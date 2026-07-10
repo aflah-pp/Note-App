@@ -65,11 +65,11 @@ function Home() {
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="max-w-3xl p-6 mx-auto">
       <div className="flex justify-end mb-4">
   <button
   onClick={handleLogout}
-    className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+    className="px-4 py-2 text-white transition bg-red-600 rounded-md hover:bg-red-700"
   >
     Logout
   </button>
@@ -77,13 +77,13 @@ function Home() {
 
       {/* Create Note Section */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Create a Note</h2>
+        <h2 className="mb-4 text-2xl font-bold text-gray-800">Create a Task</h2>
         <form
           onSubmit={createNote}
-          className="bg-white shadow-md p-6 rounded-lg space-y-4"
+          className="p-6 space-y-4 bg-white rounded-lg shadow-md"
         >
           <div>
-            <label className="block text-gray-600 mb-1">Title</label>
+            <label className="block mb-1 text-gray-600">Title</label>
             <input
               type="text"
               required
@@ -93,7 +93,7 @@ function Home() {
             />
           </div>
           <div>
-            <label className="block text-gray-600 mb-1">Content</label>
+            <label className="block mb-1 text-gray-600">Content</label>
             <textarea
               required
               value={content}
@@ -116,7 +116,7 @@ function Home() {
 
       {/* Notes List Section */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Notes</h2>
+        <h2 className="mb-4 text-2xl font-bold text-gray-800">Your Notes</h2>
         {notes.length === 0 ? (
           <p className="text-gray-500">No notes found.</p>
         ) : (
