@@ -77,7 +77,7 @@ function Home() {
 
       {/* Create Note Section */}
       <div className="mb-8">
-        <h2 className="mb-4 text-2xl font-bold text-gray-800">Create a Task</h2>
+        <h2 className="mb-4 text-2xl font-bold text-gray-800">Create a Notes</h2>
         <form
           onSubmit={createNote}
           className="p-6 space-y-4 bg-white rounded-lg shadow-md"
